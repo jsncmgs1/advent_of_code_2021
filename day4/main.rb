@@ -70,13 +70,10 @@ def bingo
         boards.delete_at(boards_idx)
       end
     end
-
   end
-
 
   sum = 0
 
-  puts solved_boards.length
   solved_boards.last.each do |row|
     row.each do |col|
       if col != "x"
