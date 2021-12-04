@@ -22,11 +22,11 @@ end
 
 def bingo
   nums, boards = parse_input
-  found = false
   num = nil
+  solved_boards = []
+  total_boards = boards.length
 
-  while !found do
-    break if nums.empty?
+  while solved_boards.length < total_boards do
     num = nums.shift
 
     boards.each_with_index do |board, board_idx|
@@ -40,11 +40,14 @@ def bingo
     end
 
     # check bingo
-    boards.each do |board|
+    boards.each_with_index do |board, boards_idx|
+      solved = false
       cols = [[],[],[],[],[]]
+
       board.each_with_index do |row, idx|
         if row.all? {|a| a == "x"}
-          found = board
+          solved_boards << board
+          solved = true
           break
         end
 
@@ -53,18 +56,28 @@ def bingo
         end
       end
 
-      cols.each do |col|
-        if col.all? {|c| c == "x"}
-          found = board
-          break
+      if !solved
+        cols.each do |col|
+          if col.all? {|c| c == "x"}
+            solved_boards << board
+            solved = true
+            break
+          end
         end
       end
+
+      if solved
+        boards.delete_at(boards_idx)
+      end
     end
+
   end
 
 
   sum = 0
-  found.each do |row|
+
+  puts solved_boards.length
+  solved_boards.last.each do |row|
     row.each do |col|
       if col != "x"
         sum += col.to_i
