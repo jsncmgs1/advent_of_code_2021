@@ -1,48 +1,37 @@
 def height_map
   heights = []
   File.open("input.txt").each_line do |line|
-    width ||= line.strip.length
     heights << line.strip.split("")
   end
 
-  risk = 0
-  risks = []
+  visited = {}
+  basins = []
+  width = heights.first.length
 
-  heights.each_with_index do |row, i|
-    check_up = ->(n, idx){
-      return true if i == 0
-      n.to_i < heights[i - 1][idx].to_i
-    }
+  not_visited = ->(r, c){ !visited["#{r},#{c}"] }
 
-    check_down = ->(n, idx){
-      return true if i == (heights.length - 1)
-      n.to_i < heights[i + 1][idx].to_i
-    }
+  check_neighbors = ->(r, c, basin){
+    visited["#{r},#{c}"] = true
 
-    check_left = ->(n, idx){
-      return true if idx == 0
-      n.to_i < row[idx - 1].to_i
-    }
+    if heights[r][c] != "9"
+      basin << 1
+      basin = check_neighbors.call(r + 1, c, basin) if r < heights.length - 1 && not_visited.call(r + 1, c)
+      basin = check_neighbors.call(r, c + 1, basin) if c < width - 1 && not_visited.call(r, c + 1)
+      basin = check_neighbors.call(r - 1, c, basin) if r != 0 && not_visited.call(r - 1, c)
+      basin = check_neighbors.call(r, c - 1, basin) if c != 0  && not_visited.call(r, c - 1)
+    end
 
-    check_right = ->(n, idx){
-      return true if idx == (row.length - 1)
-      n.to_i < row[idx + 1].to_i
-    }
+    basin
+  }
 
-    is_lowest = ->(n, idx){
-      check_up.call(n, idx) && check_down.call(n, idx) && check_left.call(n, idx) && check_right.call(n, idx)
-    }
-
-    row.each_with_index do |height, ii|
-      if is_lowest.call(height, ii)
-        risk += height.to_i + 1
-        risks << height
-      end
+  heights.each_with_index do |row,row_idx|
+    row.each_index do |col_idx|
+      next unless not_visited.call(row_idx, col_idx)
+      basins << check_neighbors.call(row_idx, col_idx, [])
     end
   end
 
-  puts risks
-  puts risk
+  basins.map(&:count).sort.last(3).reduce(&:*)
 end
 
-height_map
+puts height_map
