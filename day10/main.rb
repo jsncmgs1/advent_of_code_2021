@@ -14,7 +14,6 @@ def syntax_scoring
   }
   openers = closers.invert
 
-  stack = []
   routes = []
   File.open("input.txt").each_line do |line|
     routes << line.strip.split("")
@@ -23,14 +22,12 @@ def syntax_scoring
   incompletions = []
 
   routes.each do |brackets|
+    stack = []
     brackets.each_with_index do |b,i|
       if openers[b]
         stack << b
-      else
-        if stack.pop != closers[b] # corrupted
-          stack = []
-          break
-        end
+      elsif stack.pop != closers[b] # corrupted
+        break
       end
 
       if stack.any? && i == brackets.length - 1
@@ -44,9 +41,9 @@ def syntax_scoring
     end
   end
 
-  incompletions.map! do |closers|
-    closers.reduce(0) do |acc, n|
-      (acc * 5) + n
+  incompletions.map! do |closing_scores|
+    closing_scores.reduce(0) do |acc, n|
+      acc * 5 + n
     end
   end.sort!
 
