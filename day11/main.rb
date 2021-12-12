@@ -4,11 +4,19 @@ def octoflash
     octos << line.strip.split("").map(&:to_i)
   end
 
-  pulses = 0
   width = octos.first.count
   height = octos.count
+  steps = 0
+  mega_flash = false
+  all_zeros = Array.new(octos.length, Array.new(octos.first.length,0))
 
-  100.times do
+  while !mega_flash do
+    if octos == all_zeros
+      mega_flash = true
+      break
+    end
+
+    steps += 1
     pulsing = []
     pulsed = {}
 
@@ -18,7 +26,6 @@ def octoflash
 
     pulse = ->(row, col){
       return if pulsed["#{row},#{col}"]
-      pulses += 1
       pulsed["#{row},#{col}"] = true
       might_pulse = []
       might_pulse << [row, col + 1] if col < width - 1
@@ -39,7 +46,7 @@ def octoflash
 
     octos.each_with_index do |row, ridx|
       row.each_with_index do |col, cidx|
-        octos[ridx][cidx] += 1
+        increment.call(ridx, cidx)
 
         if octos[ridx][cidx] > 9
           pulsing << [ridx,cidx]
@@ -57,7 +64,7 @@ def octoflash
     end
   end
 
-  pulses
+  steps
 end
 
 puts octoflash
