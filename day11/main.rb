@@ -17,29 +17,29 @@ def octoflash
     end
 
     steps += 1
-    pulsing = []
-    pulsed = {}
+    flashing = []
+    flashed = {}
 
     increment = ->(r, c){
       octos[r][c] += 1
     }
 
-    pulse = ->(row, col){
-      return if pulsed["#{row},#{col}"]
-      pulsed["#{row},#{col}"] = true
-      might_pulse = []
-      might_pulse << [row, col + 1] if col < width - 1
-      might_pulse << [row, col - 1] if col != 0
-      might_pulse << [row - 1, col - 1] if col != 0 && row != 0
-      might_pulse << [row - 1, col] if row != 0
-      might_pulse << [row - 1, col + 1] if col < width -1 && row != 0
-      might_pulse << [row + 1, col - 1] if col != 0 && row < height - 1
-      might_pulse << [row + 1, col] if row < height - 1
-      might_pulse << [row + 1, col + 1] if col < width - 1 && row < height -1
+    flash = ->(row, col){
+      return if flashed["#{row},#{col}"]
+      flashed["#{row},#{col}"] = [row, col]
+      might_flash = []
+      might_flash << [row, col + 1] if col < width - 1
+      might_flash << [row, col - 1] if col != 0
+      might_flash << [row - 1, col - 1] if col != 0 && row != 0
+      might_flash << [row - 1, col] if row != 0
+      might_flash << [row - 1, col + 1] if col < width -1 && row != 0
+      might_flash << [row + 1, col - 1] if col != 0 && row < height - 1
+      might_flash << [row + 1, col] if row < height - 1
+      might_flash << [row + 1, col + 1] if col < width - 1 && row < height -1
 
-      might_pulse.each do |r,c|
+      might_flash.each do |r,c|
         if increment.call(r,c) > 9
-          pulse.call(r, c)
+          flash.call(r, c)
         end
       end
     }
@@ -49,17 +49,16 @@ def octoflash
         increment.call(ridx, cidx)
 
         if octos[ridx][cidx] > 9
-          pulsing << [ridx,cidx]
+          flashing << [ridx,cidx]
         end
       end
     end
 
-    pulsing.each do |r,c|
-      pulse.call(r,c)
+    flashing.each do |r,c|
+      flash.call(r,c)
     end
 
-    pulsed.keys.each do |k|
-      r,c = k.split(",").map(&:to_i)
+    flashed.values.each do |r,c|
       octos[r][c] = 0
     end
   end
