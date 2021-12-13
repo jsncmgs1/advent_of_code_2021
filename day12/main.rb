@@ -10,13 +10,13 @@ class Node
     @neighbors << n
   end
 
-  def to_s
-    "#{self.val} -> #{@neighbors.map(&:val)}"
+  def small_cave?
+    return false if end?
+    @val.downcase == @val
   end
 
-  def small_cave?
-    return false if @val == "end"
-    @val.downcase == @val
+  def end?
+    @val == "end"
   end
 
   def start?
@@ -36,16 +36,19 @@ def cave_nav
     nodes[c2].add_neighbor(nodes[c1]) unless nodes[c1].start?
   end
 
-  root = nodes['start']
   paths = []
 
-  visit_node = ->(root, path, visited){
+  visit_node = ->(root, path="", visited={}, revisited=false){
     if visited[root.val]
-      return
+      if revisited
+        return
+      else
+        revisited = true
+      end
     end
 
-    if root.val == "end"
-      path << "end"
+    if root.end?
+      path << root.val
       paths << path
       return
     end
@@ -57,11 +60,11 @@ def cave_nav
     path << "#{root.val},"
 
     root.neighbors.each do |node|
-      visit_node.call(node, path.clone, visited.clone)
+      visit_node.call(node, path.clone, visited.clone, revisited)
     end
   }
 
-  visit_node.call(root, "", {})
+  visit_node.call(nodes['start'])
   paths.count
 end
 
