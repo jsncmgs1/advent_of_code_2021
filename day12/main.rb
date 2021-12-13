@@ -4,12 +4,10 @@ class Node
   def initialize(val)
     @val = val
     @neighbors = []
-    @visited = false
   end
 
   def add_neighbor(n)
     @neighbors << n
-    self
   end
 
   def to_s
