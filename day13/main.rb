@@ -1,7 +1,9 @@
 def parse_input
-  marks = {x: [], y: []}
   instructions = []
+  marks = {x: [], y: []}
 
+  y_max = 0
+  x_max = 0
   File.open("input.txt").each_line do |line|
     next if line == "\n"
 
@@ -9,15 +11,14 @@ def parse_input
       x, y = line.split(",").map(&:to_i)
       marks[:x] << x
       marks[:y] << y
+      y_max = y if y_max < y
+      x_max = x if x_max < x
     else
       instructions << line.scan(/[xy]=\d+/).first.split("=")
-      break
     end
   end
 
-  y_length = marks[:y].max + 1
-  x_length = marks[:x].max + 1
-  sheet = Array.new(y_length) { Array.new(x_length, ".") }
+  sheet = Array.new(y_max + 1) { Array.new(x_max + 1, ".") }
 
   marks[:x].zip(marks[:y]).each do |x, y|
     sheet[y][x] = "#"
@@ -28,67 +29,48 @@ end
 
 def origami
   sheet, instructions = parse_input
-  new_sheet = []
+  sheet << Array.new(sheet.first.length) if sheet.first.length.odd?
 
   instructions.each do |axis,line|
-    line = line.to_i
+    new_row = []
+    new_sheet = []
 
     if axis == "y"
-      top = sheet[0..line-1]
-      bottom = sheet[line+1..]
+      sheet.delete_at(line.to_i)
 
-      while top.any? && bottom.any? do
+      sheet[0...line.to_i].each_with_index do |row,idx|
         new_row = []
-        tt = top.shift
-        bb = bottom.pop
 
-        tt.zip(bb).each do |a,b|
-          if a == "." && b == "."
-            new_row << "."
-          else
-            new_row << "#"
-          end
+        row.each_with_index do |col, cidx|
+          top = col
+          bottom = sheet[-(idx + 1)][cidx]
+          new_row << ([top,bottom].include?("#") ? "#" : ".")
         end
+
         new_sheet << new_row
       end
     else
-      new_sheet = new_sheet.any? ? new_sheet : sheet
-
-      left = new_sheet.map {|row| row[0..line-1]}
-      right = new_sheet.map {|row| row[line+1..]}
-
-      curr_row = 0
-      while left.any? && right.any? do
+      sheet.each do |row|
         new_row = []
-        ll = left.shift
-        rr = right.shift
+        row.delete_at(line.to_i)
 
-        while ll.any? do
-          lll = ll.shift
-          rrr = rr.pop
+        row[0...line.to_i].each_with_index do |col, idx|
+          left = col
+          right = row[-(idx + 1)]
 
-          if lll == "." && rrr == "."
-            new_row << "."
-          else
-            new_row << "#"
-          end
+          next if [left,right].include?(nil)
+          new_row << ([left,right].include?("#") ? "#" : ".")
         end
-        new_sheet[curr_row] = new_row
-        curr_row+=1
+
+        new_sheet << new_row
       end
     end
+
+    sheet = new_sheet
   end
 
-  count = 0
-
-  new_sheet.each do |row|
-    row.each do |col|
-      count += 1 if col == "#"
-    end
+  sheet.each do |row|
+    puts row.join("")
   end
-
-  count
 end
-
-
-puts origami
+origami
