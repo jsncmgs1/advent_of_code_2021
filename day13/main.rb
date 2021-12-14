@@ -11,6 +11,7 @@ def parse_input
       marks[:y] << y
     else
       instructions << line.scan(/[xy]=\d+/).first.split("=")
+      break
     end
   end
 
@@ -51,27 +52,34 @@ def origami
         new_sheet << new_row
       end
     else
+      new_sheet = new_sheet.any? ? new_sheet : sheet
+
       left = new_sheet.map {|row| row[0..line-1]}
       right = new_sheet.map {|row| row[line+1..]}
 
-      #still need to loop through left and right sides
+      curr_row = 0
       while left.any? && right.any? do
+        new_row = []
         ll = left.shift
-        rr = right.pop
+        rr = right.shift
 
-        if ll == "." && rr == "."
-          new_row << "."
-        else
-          new_row << "#"
+        while ll.any? do
+          lll = ll.shift
+          rrr = rr.pop
+
+          if lll == "." && rrr == "."
+            new_row << "."
+          else
+            new_row << "#"
+          end
         end
-        new_sheet << new_row
+        new_sheet[curr_row] = new_row
+        curr_row+=1
       end
     end
   end
 
   count = 0
-
-  require 'pry'; binding.pry
 
   new_sheet.each do |row|
     row.each do |col|
