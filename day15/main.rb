@@ -1,34 +1,55 @@
+require 'set'
+
 def chitons
+
   cave = []; File.open('input.txt').each_line do |line|
     cave << line.strip.split("").map(&method(:Integer))
   end
 
-  paths = []
-  # seed the path across and down so we can backtrack efficiently
-  high_risk = cave.first.reduce(:+) + cave.reduce(0) {|acc,r| acc += r.last} - 1
-  puts high_risk
-  paths << high_risk
+  unvisited = Set.new
+  visited = Set.new
+  dist = {}
+  prev = {}
 
-  find_path = ->(risk, row, col, cave, start=false){
-    risk += cave[row][col] unless start
+  cave.each_with_index do |row, ridx|
+    row.each_index do |cidx|
+      k = [ridx,cidx]
+      unvisited << k
+      dist[k] = Float::INFINITY
+      prev[k] = nil
+    end
+  end
 
-    if cave[row + 1] == nil && cave[col + 1] == nil
-      if risk > high_risk
-        high_risk = risk
+  dist[[0,0]] = 0
+
+  u = [cave.length, cave.last.length]
+
+  while unvisited.any? do
+    min = nil
+    unvisited.each do |node|
+      if min.nil? || dist[node] < dist[min]
+        min = node
       end
-      paths << risk
-      return
     end
 
-    return if risk >= high_risk && high_risk > 0
+    row, col = u = min
+    neighbors = [[row+1, col], [row, col+1]]
 
-    find_path.call(risk, row + 1, col) if row + 1 < cave.length
-    find_path.call(risk, row, col + 1) if col + 1 < cave.first.length
-  }
+    neighbors.each do |n|
+      r,c = n
+      if unvisited.include?(n)
+        alt = dist[u] + cave[r][c]
+        if alt < dist[n]
+          dist[n] = alt
+          prev[n] = [row,col]
+        end
+      end
+    end
 
+    unvisited.delete(min)
+  end
 
-  find_path.call(0, 0, 0, cave, true)
-  puts paths.min
+  puts dist[[cave.length - 1, cave.last.length - 1]]
 end
 
 chitons
